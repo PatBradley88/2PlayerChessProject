@@ -19,7 +19,8 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	int initialY;
 	JPanel panels;
 	JLabel pieces;
-	
+	boolean takeTurn;
+
  
     public ChessProject(){
         Dimension boardSize = new Dimension(600, 600);
@@ -107,7 +108,8 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	    panels.add(pieces);
 		pieces = new JLabel( new ImageIcon("BlackRook.png") );
 		panels = (JPanel)chessBoard.getComponent(63);
-	    panels.add(pieces);		
+	    panels.add(pieces);
+	    takeTurn = true;
     }
 
 	/*
@@ -141,17 +143,28 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	}
 
 	private Boolean checkBlackOponent(int newX, int newY){
-		Boolean oponent;
+		Boolean opponent;
 		Component c1 = chessBoard.findComponentAt(newX, newY);
 		JLabel awaitingPiece = (JLabel)c1;
 		String tmp1 = awaitingPiece.getIcon().toString();
 		if(((tmp1.contains("White")))){
-			oponent = true;
+			opponent = true;
 		}
 		else{
-			oponent = false;
+			opponent = false;
 		}
-		return oponent;
+		return opponent;
+	}
+
+	private void Turn(Boolean turn) {
+		if (takeTurn) {
+			takeTurn = !turn;
+			JOptionPane.showMessageDialog(null, "Blacks turn");
+		} else {
+			takeTurn = turn;
+			JOptionPane.showMessageDialog(null, "Whites turn");
+		}
+
 	}
 
 	/*
@@ -237,59 +250,241 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 			If a Pawn makes it to the top of the other side, the Pawn can turn into any other piece, for 
 			demonstration purposes the Pawn here turns into a Queen.
 		*/
+		if (takeTurn != true) {
 
-		if(pieceName.equals("BlackPawn")) {
-			if (startY == 6) { //pawn making first move
+			if (pieceName.equals("BlackPawn")) {
+				if (startY == 6) { //pawn making first move
 
-				/*
-				 * if the pawn is making its first movement
-				 * the pawn can either move one square or two squares in the Y direction
-				 * as long as we are moving up the board!! and also there is no movement in the X direction
-				 * */
+					/*
+					 * if the pawn is making its first movement
+					 * the pawn can either move one square or two squares in the Y direction
+					 * as long as we are moving up the board!! and also there is no movement in the X direction
+					 * */
 
-				// startY > landingY ensures that movement can only be progressive. Doesn't work for any other piece.
+					// startY > landingY ensures that movement can only be progressive. Doesn't work for any other piece.
 
-				if (((yMovement == 1) || (yMovement == 2)) && (startY > landingY) && (xMovement == 0)) {
-					if (yMovement == 2) {
-						if ((!piecePresent(e.getX(), e.getY())) && (!piecePresent(e.getX(), (e.getY() + 75)))) {
-							validMove = true;
+					if (((yMovement == 1) || (yMovement == 2)) && (startY > landingY) && (xMovement == 0)) {
+						if (yMovement == 2) {
+							if ((!piecePresent(e.getX(), e.getY())) && (!piecePresent(e.getX(), (e.getY() + 75)))) {
+								validMove = true;
+							}
+						} else {
+							if (!piecePresent(e.getX(), e.getY())) {
+								validMove = true;
+							}
 						}
-					} else {
+					} else if ((yMovement == 1) && (startY > landingY) && (xMovement == 1)) {
+						if (piecePresent(e.getX(), e.getY())) {
+							if (checkBlackOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+						}
+					}
+
+				} else if (startY == 1 && startY > landingY) {
+					// moving from second last row to last row
+					success = true;
+					validMove = true;
+				}
+				//taking the king to win the game.
+				if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
+					System.out.println("Black has won the game");
+					JOptionPane.showMessageDialog(null, "Black has won the game");
+					System.exit(0);
+
+				} else { //pawns all other moves
+					if (((yMovement == 1)) && (startY > landingY) && (xMovement == 0)) {
 						if (!piecePresent(e.getX(), e.getY())) {
-							validMove = true;
-						}
-					}
-				}
-				else if ((yMovement == 1) && (startY > landingY) && (xMovement == 1)) {
-					if (piecePresent(e.getX(), e.getY())) {
-						if (checkBlackOponent(e.getX(), e.getY())) {
-							validMove = true;
-						}
-					}
-				}
 
-			} else if (startY == 1 && startY > landingY){
-				// moving from second last row to last row
-				success = true;
-				validMove = true;
+							validMove = true;
+
+						}
+					} else if ((yMovement == 1) && (startY > landingY) && (xMovement == 1)) {
+						if (piecePresent(e.getX(), e.getY())) {
+							if (checkBlackOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+						}
+					}
+				}
 			}
-			//taking the king to win the game.
-			if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
-				System.out.println("Black has won the game");
-				System.exit(0);
-			}
-			else { //pawns all other moves
-				if (((yMovement == 1)) && (startY > landingY) && (xMovement == 0)) {
+			else if (pieceName.contains("BlackBishop")) {
+				if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
+					validMove = false;
+				}
+			/*
+			Bishop makes diagonally up and down the board.
+			 */
+
+				if (((xMovement == 2) && (yMovement == 2)) || ((xMovement == 1) && (yMovement == 1)) ||
+						((xMovement == 3) && (yMovement == 3)) || ((xMovement == 4) && (yMovement == 4)) ||
+						((xMovement == 5) && (yMovement == 5)) || ((xMovement == 6) && (yMovement == 6)) ||
+						((xMovement == 7) && (yMovement == 7))) {
+
 					if (!piecePresent(e.getX(), e.getY())) {
-
 						validMove = true;
-
+					} else {
+						if (pieceName.contains("White")) {
+							if (checkWhiteOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+						} else {
+							if (checkBlackOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+							//taking the king to win the game.
+							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
+								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "Black has won the game");
+								System.exit(0);
+							}
+						}
 					}
 				}
-				else if ((yMovement == 1) && (startY > landingY) && (xMovement == 1)) {
-					if (piecePresent(e.getX(), e.getY())) {
-						if (checkBlackOponent(e.getX(), e.getY())) {
-							validMove = true;
+			}
+			else if (pieceName.contains("BlackRook")) {
+				if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
+					validMove = false;
+				}
+			/*
+			The Rook moves up, down and across in either direction on the board.
+			 */
+
+				if (((xMovement == 1) && (yMovement == 0)) || ((xMovement == 2) && (yMovement == 0)) ||
+						((xMovement == 3) && (yMovement == 0)) || ((xMovement == 4) && (yMovement == 0)) ||
+						((xMovement == 5) && (yMovement == 0)) || ((xMovement == 6) && (yMovement == 0)) ||
+						((xMovement == 7) && (yMovement == 0)) || ((xMovement == 0) && (yMovement == 1)) ||
+						((xMovement == 0) && (yMovement == 2)) || ((xMovement == 0) && (yMovement == 3)) ||
+						((xMovement == 0) && (yMovement == 4)) || ((xMovement == 0) && (yMovement == 5)) ||
+						((xMovement == 0) && (yMovement == 6)) || ((xMovement == 0) && (yMovement == 7))) {
+
+					if (!piecePresent(e.getX(), e.getY())) {
+						validMove = true;
+					} else {
+						if (pieceName.contains("White")) {
+							if (checkWhiteOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+						} else {
+							if (checkBlackOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+							//taking the king to win the game.
+							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
+								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "Black has won the game");
+								System.exit(0);
+							}
+						}
+					}
+				}
+			}
+			else if (pieceName.contains("BlackKing")) {
+				if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
+					validMove = false;
+				}
+				/*
+				The King can move in any direction but only one space at a time.
+				 */
+
+				if (((xMovement == 1) || (yMovement == 0)) || ((xMovement == 0) || (yMovement == 1)) ||
+						((xMovement == 1) && (yMovement == 1))) {
+
+					if (!piecePresent(e.getX(), e.getY())) {
+						validMove = true;
+					} else {
+						if (pieceName.contains("White")) {
+							if (checkWhiteOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+						} else {
+							if (checkBlackOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+							//taking the king to win the game.
+							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
+								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "Black has won the game");
+								System.exit(0);
+							}
+						}
+					}
+				}
+			}
+			else if (pieceName.contains("BlackQueen")) {
+				if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
+					validMove = false;
+				}
+			/*
+				Queen can move vertically, horizontally and diagonally as long as the path is clear.
+			 */
+
+				if (((xMovement == 2) && (yMovement == 2)) || ((xMovement == 1) && (yMovement == 1)) ||
+						((xMovement == 3) && (yMovement == 3)) || ((xMovement == 4) && (yMovement == 4)) ||
+						((xMovement == 5) && (yMovement == 5)) || ((xMovement == 6) && (yMovement == 6)) ||
+						((xMovement == 7) && (yMovement == 7)) || ((xMovement == 1) && (yMovement == 0)) ||
+						((xMovement == 2) && (yMovement == 0)) || ((xMovement == 3) && (yMovement == 0)) ||
+						((xMovement == 4) && (yMovement == 0)) || ((xMovement == 5) && (yMovement == 0)) ||
+						((xMovement == 6) && (yMovement == 0)) || ((xMovement == 7) && (yMovement == 0)) ||
+						((xMovement == 0) && (yMovement == 1)) || ((xMovement == 0) && (yMovement == 2)) ||
+						((xMovement == 0) && (yMovement == 3)) || ((xMovement == 0) && (yMovement == 4)) ||
+						((xMovement == 0) && (yMovement == 5)) || ((xMovement == 0) && (yMovement == 6)) ||
+						((xMovement == 0) && (yMovement == 7))) {
+
+					if (!piecePresent(e.getX(), e.getY())) {
+						validMove = true;
+					} else {
+						if (pieceName.contains("White")) {
+							if (checkWhiteOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+						} else {
+							if (checkBlackOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+							//taking the king to win the game.
+							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
+								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "Black has won the game");
+								System.exit(0);
+							}
+						}
+					}
+				}
+			}
+
+			else if (pieceName.contains("BlackKnight")) {
+				if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
+					validMove = false;
+				}
+			/*
+				The Knight can move in an 'L' movement. It means that if xMovement ==1 then the yMovement
+				must equal 2 and vice versa.
+
+				We need to check the square being moved to and make sure if there is a piece there that
+				it's not our own.
+
+			 */
+
+				if (((xMovement == 1) && (yMovement == 2)) || ((xMovement == 2) && (yMovement == 1))) {
+
+					if (!piecePresent(e.getX(), e.getY())) {
+						validMove = true;
+					} else {
+						if (pieceName.contains("White")) {
+							if (checkWhiteOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+						} else {
+							if (checkBlackOponent(e.getX(), e.getY())) {
+								validMove = true;
+							}
+							//taking the king to win the game.
+							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
+								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "Black has won the game");
+								System.exit(0);
+							}
 						}
 					}
 				}
@@ -324,40 +519,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 							//taking the king to win the game.
 							if (getPieceName(e.getX(), e.getY()).contains("BlackKing")) {
 								System.out.println("White has won the game");
-								System.exit(0);
-							}
-						}
-					}
-			}
-		}
-
-		else if (pieceName.contains("BlackBishop")) {
-			if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
-				validMove = false;
-			}
-			/*
-			Bishop makes diagonally up and down the board.
-			 */
-
-				if (((xMovement == 2) && (yMovement == 2)) || ((xMovement == 1) && (yMovement == 1)) ||
-						((xMovement == 3) && (yMovement == 3)) || ((xMovement == 4) && (yMovement == 4)) ||
-						((xMovement == 5) && (yMovement == 5)) || ((xMovement == 6) && (yMovement == 6)) ||
-						((xMovement == 7) && (yMovement == 7))) {
-
-					if (!piecePresent(e.getX(), e.getY())) {
-						validMove = true;
-					} else {
-						if (pieceName.contains("White")) {
-							if (checkWhiteOponent(e.getX(), e.getY())) {
-								validMove = true;
-							}
-						} else {
-							if (checkBlackOponent(e.getX(), e.getY())) {
-								validMove = true;
-							}
-							//taking the king to win the game.
-							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
-								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "White has won the game");
 								System.exit(0);
 							}
 						}
@@ -396,43 +558,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 							//taking the king to win the game.
 							if (getPieceName(e.getX(), e.getY()).contains("BlackKing")) {
 								System.out.println("White has won the game");
-								System.exit(0);
-							}
-						}
-					}
-			}
-		}
-
-		else if (pieceName.contains("BlackRook")) {
-			if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
-				validMove = false;
-			}
-			/*
-			The Rook moves up, down and across in either direction on the board.
-			 */
-
-				if (((xMovement == 1) && (yMovement == 0)) || ((xMovement == 2) && (yMovement == 0)) ||
-						((xMovement == 3) && (yMovement == 0)) || ((xMovement == 4) && (yMovement == 0)) ||
-						((xMovement == 5) && (yMovement == 0)) || ((xMovement == 6) && (yMovement == 0)) ||
-						((xMovement == 7) && (yMovement == 0)) || ((xMovement == 0) && (yMovement == 1)) ||
-						((xMovement == 0) && (yMovement == 2)) || ((xMovement == 0) && (yMovement == 3)) ||
-						((xMovement == 0) && (yMovement == 4)) || ((xMovement == 0) && (yMovement == 5)) ||
-						((xMovement == 0) && (yMovement == 6)) || ((xMovement == 0) && (yMovement == 7))) {
-
-					if (!piecePresent(e.getX(), e.getY())) {
-						validMove = true;
-					} else {
-						if (pieceName.contains("White")) {
-							if (checkWhiteOponent(e.getX(), e.getY())) {
-								validMove = true;
-							}
-						} else {
-							if (checkBlackOponent(e.getX(), e.getY())) {
-								validMove = true;
-							}
-							//taking the king to win the game.
-							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
-								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "White has won the game");
 								System.exit(0);
 							}
 						}
@@ -465,38 +591,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 							//taking the king to win the game.
 							if (getPieceName(e.getX(), e.getY()).contains("BlackKing")) {
 								System.out.println("White has won the game");
-								System.exit(0);
-							}
-						}
-					}
-			}
-		}
-
-		else if (pieceName.contains("BlackKing")) {
-			if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
-				validMove = false;
-			}
-				/*
-				The King can move in any direction but only one space at a time.
-				 */
-
-				if (((xMovement == 1) || (yMovement == 0)) || ((xMovement == 0) || (yMovement == 1)) ||
-						((xMovement == 1) && (yMovement == 1))) {
-
-					if (!piecePresent(e.getX(), e.getY())) {
-						validMove = true;
-					} else {
-						if (pieceName.contains("White")) {
-							if (checkWhiteOponent(e.getX(), e.getY())) {
-								validMove = true;
-							}
-						} else {
-							if (checkBlackOponent(e.getX(), e.getY())) {
-								validMove = true;
-							}
-							//taking the king to win the game.
-							if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
-								System.out.println("Black has won the game");
+								JOptionPane.showMessageDialog(null, "White has won the game");
 								System.exit(0);
 							}
 						}
@@ -544,84 +639,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 								//taking the king to win the game.
 								if (getPieceName(e.getX(), e.getY()).contains("BlackKing")) {
 									System.out.println("White has won the game");
-									System.exit(0);
-								}
-							}
-						}
-			}
-		}
-
-
-		else if (pieceName.contains("BlackQueen")) {
-			if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
-				validMove = false;
-			}
-			/*
-				Queen can move vertically, horizontally and diagonally as long as the path is clear.
-			 */
-
-				if (((xMovement == 2) && (yMovement == 2)) || ((xMovement == 1) && (yMovement == 1)) ||
-						((xMovement == 3) && (yMovement == 3)) || ((xMovement == 4) && (yMovement == 4)) ||
-						((xMovement == 5) && (yMovement == 5)) || ((xMovement == 6) && (yMovement == 6)) ||
-						((xMovement == 7) && (yMovement == 7)) || ((xMovement == 1) && (yMovement == 0)) ||
-						((xMovement == 2) && (yMovement == 0)) || ((xMovement == 3) && (yMovement == 0)) ||
-						((xMovement == 4) && (yMovement == 0)) || ((xMovement == 5) && (yMovement == 0)) ||
-						((xMovement == 6) && (yMovement == 0)) || ((xMovement == 7) && (yMovement == 0)) ||
-						((xMovement == 0) && (yMovement == 1)) || ((xMovement == 0) && (yMovement == 2)) ||
-						((xMovement == 0) && (yMovement == 3)) || ((xMovement == 0) && (yMovement == 4)) ||
-						((xMovement == 0) && (yMovement == 5)) || ((xMovement == 0) && (yMovement == 6)) ||
-						((xMovement == 0) && (yMovement == 7))) {
-
-					if (!piecePresent(e.getX(), e.getY())) {
-						validMove = true;
-					} else {
-							if (pieceName.contains("White")) {
-								if (checkWhiteOponent(e.getX(), e.getY())) {
-									validMove = true;
-								}
-							} else {
-								if (checkBlackOponent(e.getX(), e.getY())) {
-									validMove = true;
-								}
-								//taking the king to win the game.
-								if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
-									System.out.println("Black has won the game");
-									System.exit(0);
-								}
-							}
-				}
-			}
-		}
-
-		else if (pieceName.contains("BlackKnight")) {
-			if (((landingX < 0) || (landingX > 7)) || ((landingY < 0) || (landingY > 7))) {
-				validMove = false;
-			}
-			/*
-				The Knight can move in an 'L' movement. It means that if xMovement ==1 then the yMovement
-				must equal 2 and vice versa.
-
-				We need to check the square being moved to and make sure if there is a piece there that
-				it's not our own.
-
-			 */
-
-				if (((xMovement == 1) && (yMovement == 2)) || ((xMovement == 2) && (yMovement == 1))) {
-
-					if (!piecePresent(e.getX(), e.getY())) {
-						validMove = true;
-					} else {
-							if (pieceName.contains("White")) {
-								if (checkWhiteOponent(e.getX(), e.getY())) {
-									validMove = true;
-								}
-							} else {
-								if (checkBlackOponent(e.getX(), e.getY())) {
-									validMove = true;
-								}
-								//taking the king to win the game.
-								if (getPieceName(e.getX(), e.getY()).contains("WhiteKing")) {
-									System.out.println("Black has won the game");
+									JOptionPane.showMessageDialog(null, "White has won the game");
 									System.exit(0);
 								}
 							}
@@ -658,6 +676,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 							//taking the king to win the game.
 							if (getPieceName(e.getX(), e.getY()).contains("BlackKing")) {
 								System.out.println("White has won the game");
+								JOptionPane.showMessageDialog(null, "White has won the game");
 								System.exit(0);
 							}
 						}
@@ -732,6 +751,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 				//taking the king to win the game.
 				if (getPieceName(e.getX(), e.getY()).contains("BlackKing")) {
 					System.out.println("White has won the game");
+					JOptionPane.showMessageDialog(null, "White has won the game");
 					System.exit(0);
 				}
 			}
@@ -766,6 +786,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 						parent = (JPanel) chessBoard.getComponent(location);
 						parent.add(pieces);
 					}
+					Turn(true);
 
 
 				} else if (pieceName.equalsIgnoreCase("WhitePawn")) {
@@ -783,6 +804,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 						parent = (JPanel) chessBoard.getComponent(location);
 						parent.add(pieces);
 					}
+					Turn(true);
 				}
 			}
 			else{
@@ -796,6 +818,7 @@ public class ChessProject extends JFrame implements MouseListener, MouseMotionLi
 	            	parent.add( chessPiece );
 	        	}
 	    		chessPiece.setVisible(true);
+	        	Turn(true);
 			}
 		}
     }
